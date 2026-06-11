@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1226">
+<title>Priority Healthcare — Cost Analysis Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#1b2440; --navy-2:#27345c;
+    --azure:#10A0DF; --azure-deep:#0a85bd;
+    --cost:#d9786b; --cost-deep:#c2604f;
+    --save:#13a06b; --save-deep:#0c7d52;
+    --ink:#1b2230; --muted:#5e6678; --faint:#828a9c;
+    --line:#e7eaf1; --line-2:#d6dbe6; --paper:#ffffff;
+    --r-lg:18px; --r-md:12px; --r-sm:7px;
+    --sh-card:0 1px 2px rgba(11,18,38,.05), 0 10px 28px rgba(11,18,38,.06);
+    --sh-page:0 2px 8px rgba(0,0,0,.20), 0 40px 90px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%;background:#0b1226}
+  body{
+    font-family:'Archivo','Segoe UI',-apple-system,system-ui,sans-serif;
+    color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+    background:
+      radial-gradient(1300px 720px at 82% -12%, rgba(16,160,223,.22), transparent 58%),
+      radial-gradient(1000px 620px at -5% 112%, rgba(27,36,64,.30), transparent 55%),
+      linear-gradient(165deg, #101a36 0%, #0b1124 55%, #080d1d 100%);
+    background-attachment:fixed;
+    padding:clamp(36px,5vw,104px) clamp(40px,7vw,140px);
+  }
+  .mono{font-family:'IBM Plex Mono','SFMono-Regular',Menlo,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .wrap{max-width:1280px;margin:0 auto;background:var(--paper);
+    border-radius:var(--r-lg);box-shadow:var(--sh-page);overflow:hidden;
+    border:1px solid rgba(255,255,255,.10)}
+  .accent-top{height:4px;background:linear-gradient(90deg,var(--navy),var(--azure))}
+  .sec.pad,.pad{padding-left:96px !important;padding-right:96px !important}
+  @media(max-width:900px){.pad{padding-left:56px;padding-right:56px}}
+  @media(max-width:600px){.pad{padding-left:26px;padding-right:26px}}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:24px;
+    padding:36px 96px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  @media(max-width:900px){header{padding:26px 56px}}
+  header img{height:48px;display:block}
+  .head-right{display:flex;align-items:center;gap:26px;flex-wrap:wrap;justify-content:flex-end}
+  .fac{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+  .fac label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  .fac input{font-family:inherit;font-size:15px;font-weight:600;color:var(--navy);text-align:left;
+    border:0;border-bottom:1.5px solid var(--line-2);padding:3px 0 5px;width:200px;background:transparent;transition:.15s}
+  .fac input:focus{outline:none;border-color:var(--azure)}
+  .fac input::placeholder{color:var(--faint);font-weight:500}
+  #prepFields{display:flex;gap:26px;flex-wrap:wrap}
+  #prepFields.collapsed{display:none}
+  #prepEdit{display:none;border:1px solid var(--line-2);background:#fff;color:var(--muted);
+    font-family:inherit;font-size:12px;font-weight:600;padding:8px 12px;border-radius:var(--r-sm);cursor:pointer;transition:.15s}
+  #prepEdit:hover{border-color:var(--azure);color:var(--azure-deep)}
+  #prepEdit.show{display:inline-flex;align-items:center;gap:6px}
+  .toolbar{display:flex;gap:10px}
+  .tbtn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-2);background:#fff;color:var(--navy);
+    font-family:inherit;font-size:12.5px;font-weight:600;padding:9px 15px;border-radius:var(--r-sm);cursor:pointer;transition:.15s;white-space:nowrap}
+  .tbtn:hover{border-color:var(--azure);color:var(--azure-deep);box-shadow:0 2px 8px rgba(16,160,223,.12)}
+  .tbtn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .tbtn.primary:hover{background:var(--navy-2);color:#fff}
+
+  /* ---------- TAB BAR ---------- */
+  .tabbar{display:flex;gap:6px;padding:18px 96px;border-bottom:1px solid var(--line);background:#fafbfd;flex-wrap:wrap}
+  @media(max-width:900px){.tabbar{padding:14px 56px}}
+  @media(max-width:600px){.tabbar{padding:12px 26px}}
+  .tabbar button{border:1px solid transparent;background:transparent;font-family:inherit;font-size:14px;font-weight:700;
+    color:var(--muted);padding:11px 22px;cursor:pointer;transition:.16s;border-radius:9px;letter-spacing:-.01em}
+  .tabbar button:hover{color:var(--navy);background:#eef1f7}
+  .tabbar button.active{background:var(--navy);color:#fff;box-shadow:0 2px 10px rgba(27,36,64,.25)}
+  .tabpane{display:none}
+  .tabpane.active{display:block}
+
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--azure-deep);font-weight:700;margin-bottom:16px}
+  .eyebrow::before{content:"";width:20px;height:2px;background:var(--azure);border-radius:2px}
+  .sec{padding-top:60px;padding-bottom:60px;border-bottom:1px solid var(--line)}
+  @media(max-width:760px){.sec{padding-top:42px;padding-bottom:42px}}
+  .sec h2{font-size:27px;font-weight:700;color:var(--navy);letter-spacing:-.02em;line-height:1.25}
+  .sec .sub{font-size:16px;color:var(--muted);margin-top:10px;max-width:66ch}
+
+  .headline{font-size:46px;line-height:1.15;font-weight:800;letter-spacing:-.025em;color:var(--navy);max-width:20ch}
+  .headline b{font-weight:900;color:var(--save-deep);white-space:nowrap;display:inline-block;padding-right:.08em}
+  @media(max-width:760px){.headline{font-size:32px}}
+  .figrow{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:42px}
+  .fcard{padding:30px 30px 28px;border:1px solid var(--line);border-radius:var(--r-md);background:#fcfdfe;
+    position:relative;overflow:hidden;transition:.2s}
+  .fcard .k{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:12px;font-weight:600}
+  .fcard .v{font-size:35px;font-weight:600;color:var(--ink);line-height:1.12;white-space:nowrap;padding-right:.06em}
+  .fcard .note{font-size:12px;color:var(--muted);margin-top:9px}
+  .fcard.hl{border:1.5px solid var(--azure);background:#fff;box-shadow:0 0 0 4px rgba(16,160,223,.07), var(--sh-card)}
+  .fcard.hl::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--azure)}
+  .fcard.hl .v{color:var(--save-deep);font-weight:700}
+  .fcard.hl .k{color:var(--navy)}
+  .arrow-up{display:inline-block;margin-right:6px;color:var(--save);font-size:.7em;vertical-align:middle}
+  @media(max-width:760px){.figrow{grid-template-columns:1fr}}
+
+  .kstrip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}
+  .kchip{border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;background:#fff;text-align:left}
+  .kchip .kk{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  .kchip .kv{font-size:21px;font-weight:700;color:var(--navy);margin-top:5px;white-space:nowrap}
+  .kchip .kv.sv{color:var(--save-deep)}
+  @media(max-width:760px){.kstrip{grid-template-columns:repeat(2,1fr)}}
+
+  .chart-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .seg{display:inline-flex;background:#eef1f7;border-radius:9px;padding:4px;gap:3px}
+  .seg button{border:0;background:transparent;font-family:inherit;font-size:13px;font-weight:600;
+    color:var(--muted);padding:9px 18px;cursor:pointer;transition:.16s;border-radius:6px}
+  .seg button.active{background:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(27,36,64,.22)}
+  .chart-stat{display:flex;align-items:baseline;gap:14px;margin:26px 0 6px;flex-wrap:wrap}
+  .chart-stat .big{font-size:60px;font-weight:800;letter-spacing:-.03em;line-height:1.08;display:inline-block;padding-right:.06em;color:var(--save-deep)}
+  @media(max-width:760px){.chart-stat .big{font-size:44px}}
+  .chart-stat .cap{font-size:16px;color:var(--muted);font-weight:500}
+  .chart-stat .cap b{color:var(--navy);font-weight:700}
+  .legend-row{display:flex;gap:22px;flex-wrap:wrap;margin:6px 0 12px;align-items:center}
+  .lg{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);font-weight:500}
+  .lg .sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+  .chart-box{position:relative;height:420px}
+  @media(max-width:760px){.chart-box{height:340px}}
+  .protect{margin-left:auto;display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);font-weight:500}
+  .protect input{width:58px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right;
+    border:1px solid var(--line-2);border-radius:var(--r-sm);padding:6px 8px;color:var(--navy)}
+  .protect input:focus{outline:none;border-color:var(--azure);box-shadow:0 0 0 3px rgba(16,160,223,.13)}
+
+  .table-card{margin-top:26px;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--sh-card)}
+  .table-scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:760px}
+  thead th{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
+    font-weight:600;text-align:right;padding:15px 14px 13px;background:#fafbfd;border-bottom:1px solid var(--line);white-space:nowrap}
+  thead th:first-child{text-align:left}
+  tbody td{padding:14px 16px;text-align:right;border-bottom:1px solid var(--line);font-size:15.5px;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:0}
+  tbody td:first-child{text-align:left;font-weight:600;color:var(--navy)}
+  tbody tr:hover{background:#fafcfe}
+  input.cell{width:88px;font-family:'IBM Plex Mono',monospace;font-size:15px;text-align:right;
+    border:1px solid var(--line-2);border-radius:var(--r-sm);padding:8px 9px;color:var(--navy);
+    font-weight:500;background:#fff;transition:.13s}
+  input.cell:hover{border-color:#b9c0cf}
+  input.cell:focus{outline:none;border-color:var(--azure);box-shadow:0 0 0 3px rgba(16,160,223,.14)}
+  input.role{width:120px;text-align:left;font-family:inherit;font-weight:600;color:var(--navy)}
+  td.cur{color:var(--cost-deep);font-weight:600}
+  td.pri{color:var(--azure-deep);font-weight:600}
+  td.sv{color:var(--save);font-weight:700}
+  td.rm{padding-left:0;padding-right:10px}
+  .rmbtn{border:0;background:transparent;color:var(--faint);font-size:17px;line-height:1;cursor:pointer;
+    width:26px;height:26px;border-radius:6px;transition:.13s}
+  .rmbtn:hover{background:#fbecea;color:var(--cost-deep)}
+  tfoot td{padding:18px 16px;font-size:16px;font-weight:700;color:var(--navy);
+    background:#fafbfd;border-top:2px solid var(--navy);text-align:right;white-space:nowrap}
+  tfoot td:first-child{text-align:left}
+  tfoot td.sv{color:var(--save-deep)}
+  .table-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .hint{font-size:12px;color:var(--muted);margin-top:16px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .tagk{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--azure-deep);
+    background:rgba(16,160,223,.10);border-radius:5px;padding:3px 8px}
+  .tagw{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:#9a6b15;
+    background:rgba(224,162,60,.14);border-radius:5px;padding:3px 8px}
+  .reset,.addrow{border:1px solid var(--line-2);background:#fff;color:var(--muted);
+    font-family:inherit;font-size:12.5px;font-weight:600;padding:9px 15px;border-radius:var(--r-sm);cursor:pointer;transition:.15s}
+  .reset:hover,.addrow:hover{border-color:var(--azure);color:var(--azure-deep)}
+  .addrow{color:var(--azure-deep);border-color:rgba(16,160,223,.4)}
+
+  .burden-grid{display:grid;grid-template-columns:320px 1fr;gap:46px;margin-top:30px;align-items:start}
+  @media(max-width:820px){.burden-grid{grid-template-columns:1fr;gap:34px}}
+  .inputs{display:flex;flex-direction:column;gap:18px}
+  .in{display:flex;flex-direction:column;gap:7px}
+  .in label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .in label small{font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint)}
+  .ifield{display:flex;align-items:stretch;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden;background:#fff;transition:.13s}
+  .ifield span{padding:0 13px;font-size:13px;color:var(--faint);background:#f5f6f9;display:flex;align-items:center;border-right:1px solid var(--line)}
+  .ifield input,.ifield select{flex:1;border:0;font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;
+    color:var(--navy);padding:12px 13px;background:transparent;min-width:0}
+  .ifield select{font-family:'Archivo',sans-serif;font-weight:600;font-size:15px;cursor:pointer}
+  .ifield input:focus,.ifield select:focus{outline:none}
+  .ifield:focus-within{border-color:var(--azure);box-shadow:0 0 0 3px rgba(16,160,223,.13)}
+
+  .legend2{margin-top:6px;border:1px solid var(--line);border-radius:var(--r-md);padding:6px 16px;background:#fcfdfe}
+  .legend2 .l2{display:flex;align-items:center;justify-content:space-between;padding:11px 0;font-size:14.5px;border-bottom:1px solid var(--line)}
+  .legend2 .l2:last-child{border-bottom:0}
+  .legend2 .l2 .nm{display:flex;align-items:center;gap:10px;color:var(--muted)}
+  .legend2 .l2 .nm i{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+  .legend2 .l2 .amt{font-weight:600;color:var(--navy)}
+  .legend2 .l2.total{border-top:1.5px solid var(--line-2);margin-top:2px}
+  .legend2 .l2.total .nm{color:var(--navy);font-weight:700}
+  .legend2 .l2.total .amt{color:var(--navy);font-weight:700}
+
+  .compare{display:flex;gap:34px;align-items:flex-end;justify-content:center;
+    padding:28px 24px 0;border:1px solid var(--line);border-radius:var(--r-md);background:#fcfdfe;box-shadow:var(--sh-card)}
+  .col{flex:1;max-width:150px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  .col .tot{font-size:24px;font-weight:700;color:var(--ink)}
+  .col.priority .tot{color:var(--azure-deep)}
+  .barwrap{height:280px;width:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+  .stack{display:flex;flex-direction:column-reverse;border-radius:7px 7px 0 0;overflow:hidden;width:90px;
+    box-shadow:0 8px 22px rgba(11,18,38,.16)}
+  .stack .seg-b{width:100%;transition:height .5s cubic-bezier(.4,0,.2,1)}
+  .col .cap{font-size:12.5px;font-weight:700;color:var(--navy);text-align:center;padding-bottom:24px}
+  .col .cap small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px}
+
+  .verdict{margin-top:18px;border:1px solid var(--line-2);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--sh-card)}
+  .v-main{background:#f6fafd;border-left:4px solid var(--azure);padding:22px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .v-main .big{font-size:36px;font-weight:800;color:var(--save-deep);letter-spacing:-.02em}
+  .v-main .lbl{font-size:13px;color:var(--muted)}
+  .v-main .pctpill{font-size:13px;font-weight:700;color:#fff;background:var(--save);padding:6px 13px;border-radius:999px}
+  .v-sub{display:grid;grid-template-columns:repeat(2,1fr)}
+  .v-sub .vs{padding:18px 24px;border-top:1px solid var(--line)}
+  .v-sub .vs:first-child{border-right:1px solid var(--line)}
+  .v-sub .vs .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  .v-sub .vs .n{font-size:25px;font-weight:700;color:var(--save-deep);margin-top:4px}
+
+  .outlook{margin-top:28px;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--sh-card)}
+  .outlook table{min-width:680px}
+  .outlook tbody td:first-child{color:var(--navy)}
+  .outlook tbody tr.cum td{background:#f7fbf9}
+  .lockpill{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--azure-deep);background:rgba(16,160,223,.10);padding:2px 7px;border-radius:5px;margin-left:8px;vertical-align:middle}
+
+  footer{padding:36px 96px 48px;color:var(--faint);font-size:11.5px;line-height:1.75}
+  footer b{color:var(--muted)}
+  @media(max-width:900px){footer{padding:28px 56px 36px}}
+
+  /* ---------- REPORT MODE ---------- */
+  #reportOverlay{display:none;position:fixed;inset:0;z-index:60;background:rgba(8,13,29,.78);overflow-y:auto;padding:34px 16px 60px}
+  body.report-open #reportOverlay{display:block}
+  body.report-open{overflow:hidden}
+  .report-page{max-width:880px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  .report-tools{max-width:880px;margin:0 auto 14px;display:flex;justify-content:flex-end;gap:10px}
+  .report-tools .tbtn{box-shadow:0 4px 14px rgba(0,0,0,.3)}
+  .rp-accent{height:5px;background:linear-gradient(90deg,var(--navy),var(--azure))}
+  .rp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:38px 56px 26px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .rp-head img{height:44px}
+  .rp-meta{text-align:right;font-size:12.5px;color:var(--muted);line-height:1.7}
+  .rp-meta b{color:var(--navy);font-size:14px}
+  .rp-title{padding:34px 56px 6px}
+  .rp-title .eyebrow{margin-bottom:10px}
+  .rp-title h1{font-size:30px;font-weight:800;color:var(--navy);letter-spacing:-.02em;line-height:1.2}
+  .rp-body{padding:8px 56px 44px}
+  .rp-sec{margin-top:30px}
+  .rp-sec h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--azure-deep);font-weight:700;margin-bottom:14px;
+    display:flex;align-items:center;gap:9px}
+  .rp-sec h3::before{content:"";width:18px;height:2px;background:var(--azure);border-radius:2px}
+  .rp-figs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .rp-fig{border:1px solid var(--line);border-radius:10px;padding:18px 20px;background:#fcfdfe}
+  .rp-fig.hl{border:1.5px solid var(--azure);border-left:4px solid var(--azure)}
+  .rp-fig .k{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  .rp-fig .v{font-size:24px;font-weight:700;color:var(--navy);margin-top:6px;white-space:nowrap}
+  .rp-fig.hl .v{color:var(--save-deep)}
+  .rp-fig .n2{font-size:11px;color:var(--muted);margin-top:4px}
+  .rp-table{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .rp-table table{min-width:0}
+  .rp-table thead th{padding:11px 12px 10px;font-size:10.5px}
+  .rp-table tbody td{padding:10px 12px;font-size:13.5px}
+  .rp-table tfoot td{padding:12px;font-size:13.5px}
+  .rp-chart{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff}
+  .rp-chart img{width:100%;display:block}
+  .rp-insights{border:1px solid var(--line);border-radius:10px;background:#fcfdfe;padding:8px 22px 18px}
+  .rp-insights ul{list-style:none;margin-top:10px}
+  .rp-insights li{position:relative;padding:9px 26px 9px 22px;font-size:14.5px;color:var(--ink);border-bottom:1px solid var(--line);outline:none}
+  .rp-insights li:last-child{border-bottom:0}
+  .rp-insights li::before{content:"";position:absolute;left:0;top:17px;width:9px;height:9px;border-radius:3px;background:var(--azure)}
+  .rp-insights li b{color:var(--save-deep)}
+  .rp-insights li .rmx{position:absolute;right:0;top:8px;border:0;background:transparent;color:var(--faint);cursor:pointer;font-size:15px;
+    width:22px;height:22px;border-radius:5px}
+  .rp-insights li .rmx:hover{background:#fbecea;color:var(--cost-deep)}
+  .rp-notes{margin-top:14px;border:1.5px dashed var(--line-2);border-radius:10px;padding:16px 18px;font-size:14.5px;color:var(--ink);
+    min-height:84px;outline:none;background:#fff;transition:.15s}
+  .rp-notes:focus{border-color:var(--azure);border-style:solid;box-shadow:0 0 0 3px rgba(16,160,223,.12)}
+  .rp-notes:empty::before{content:attr(data-ph);color:var(--faint)}
+  .rp-edit-hint{font-size:11.5px;color:var(--faint);margin-top:8px}
+  .rp-foot{padding:22px 56px 34px;border-top:1px solid var(--line);font-size:10.5px;color:var(--faint);line-height:1.7}
+  .rp-foot b{color:var(--muted)}
+
+  /* ---------- PRINT ---------- */
+  @media print{
+    @page{size:A4;margin:13mm}
+    html,body{background:#fff !important;padding:0 !important;overflow:visible !important}
+    .wrap{box-shadow:none !important;border:0 !important;border-radius:0 !important;max-width:100% !important}
+    .toolbar,.table-actions,.addrow,.rmbtn,.protect,.tabbar,#prepEdit,.exportbtn{display:none !important}
+    .sec{padding-top:26px !important;padding-bottom:26px !important;break-inside:avoid}
+    .sec.pad,.pad{padding-left:0 !important;padding-right:0 !important}
+    header,footer{padding-left:0 !important;padding-right:0 !important}
+    .chart-box{height:330px !important}
+    input,input.cell,.fac input,.ifield input,.protect input{border-color:#d6dbe6 !important;box-shadow:none !important}
+    #prepFields.collapsed{display:flex !important}
+    .fcard,.kchip,.table-card,.outlook,.compare,.verdict,.legend2,.rp-fig,.rp-table,.rp-insights,.rp-chart{break-inside:avoid}
+    *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+    body.report-open .wrap{display:none !important}
+    body.report-open #reportOverlay{display:block !important;position:static !important;background:#fff !important;padding:0 !important;overflow:visible !important}
+    body.report-open .report-page{box-shadow:none !important;border-radius:0 !important;max-width:100% !important}
+    .report-tools{display:none !important}
+    .rp-insights li .rmx{display:none !important}
+    .rp-notes{border-style:solid;border-color:var(--line)}
+    .rp-notes:empty{display:none}
+    .rp-sec{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="accent-top"></div>
+
+  <header>
+    <img id="logo" alt="Priority Healthcare Staffing Solutions Inc">
+    <div class="head-right">
+      <div id="prepFields">
+        <div class="fac">
+          <label for="facName">Prepared for</label>
+          <input id="facName" type="text" placeholder="Facility name" value="">
+        </div>
+        <div class="fac">
+          <label for="repName">Prepared by</label>
+          <input id="repName" type="text" placeholder="Your name" value="">
+        </div>
+      </div>
+      <button id="prepEdit" title="Edit prepared for / by">&#9998; Details</button>
+      <div class="toolbar">
+        <button class="tbtn primary" id="printBtn" title="Build a client-ready PDF report">&#128424; Save as PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabbar" id="tabBar">
+    <button data-tab="temp" class="active">Temp Staffing</button>
+    <button data-tab="perm">Permanent Placement</button>
+    <button data-tab="t2p">Temp-to-Perm</button>
+  </nav>
+
+  <!-- ================= TAB 1: TEMP STAFFING ================= -->
+  <div class="tabpane active" id="tab-temp">
+
+  <section class="sec pad">
+    <div class="eyebrow" id="eyebrowMain">Cost Analysis</div>
+    <div class="headline">Priority Healthcare lowers your staffing spend by <b id="hlNum">$72,000</b> a year.</div>
+    <div class="figrow">
+      <div class="fcard">
+        <div class="k">Current annual spend</div>
+        <div class="v mono" id="figCur">$624,000</div>
+        <div class="note">At your present rates</div>
+      </div>
+      <div class="fcard">
+        <div class="k">With Priority</div>
+        <div class="v mono" id="figPri">$552,000</div>
+        <div class="note">All-in agency rates</div>
+      </div>
+      <div class="fcard hl">
+        <div class="k">You keep — Year 1</div>
+        <div class="v mono"><span class="arrow-up">&#9650;</span><span id="figSave">$72,000</span></div>
+        <div class="note" id="figPct">11.5% lower &middot; $6,000 / month</div>
+      </div>
+    </div>
+    <div class="kstrip">
+      <div class="kchip"><div class="kk">Saving / month</div><div class="kv sv mono" id="kMo">$6,000</div></div>
+      <div class="kchip"><div class="kk">Reduction</div><div class="kv mono" id="kPct">11.5%</div></div>
+      <div class="kchip"><div class="kk">3-year cumulative*</div><div class="kv sv mono" id="k3yr">$273k</div></div>
+      <div class="kchip"><div class="kk">5-year cumulative*</div><div class="kv sv mono" id="k5yr">$553k</div></div>
+    </div>
+  </section>
+
+  <section class="sec pad">
+    <div class="chart-top">
+      <div>
+        <div class="eyebrow">Cost over time</div>
+        <h2>Cumulative cost comparison &amp; savings</h2>
+        <div class="sub">The gap between the bars is your cumulative saving with Priority — same staffing hours, same coverage, lower spend. The green figure above each pair shows total savings realized to that point.</div>
+      </div>
+      <div class="seg" id="seg">
+        <button data-mode="12mo" class="active">12 months</button>
+        <button data-mode="3yr">3 years</button>
+        <button data-mode="5yr">5 years</button>
+      </div>
+    </div>
+
+    <div class="chart-stat">
+      <div class="big mono" id="periodSaved">$72,000</div>
+      <div class="cap">kept in your budget <b id="periodLabel">by month 12</b></div>
+    </div>
+
+    <div class="legend-row">
+      <div class="lg"><span class="sw" style="background:linear-gradient(180deg,#e08e80,#c2604f)"></span>Current cost</div>
+      <div class="lg"><span class="sw" style="background:linear-gradient(180deg,#37b6ec,#0a85bd)"></span>Priority cost</div>
+      <div class="lg"><span class="sw" style="background:rgba(19,160,107,.18);border:1px solid rgba(19,160,107,.5)"></span>Saving (per pair)</div>
+      <div class="protect">
+        <span>Assumed annual wage inflation</span>
+        <input id="inflation" type="number" step="0.5" value="3">
+        <span>%</span>
+      </div>
+    </div>
+    <div class="chart-box"><canvas id="costChart"></canvas></div>
+    <div class="hint" id="inflNote"></div>
+  </section>
+
+  <section class="sec pad">
+    <div class="chart-top">
+      <div>
+        <div class="eyebrow">Rate comparison</div>
+        <h2>Model this facility live</h2>
+        <div class="sub">Edit any role name, current rate, Priority rate, or monthly hours — every figure on the page recalculates instantly. Add or remove lines to match the facility's exact staffing mix.</div>
+      </div>
+      <div class="table-actions">
+        <button class="addrow" id="addRow">+ Add role</button>
+        <button class="reset" id="resetRates">Reset to defaults</button>
+        <button class="tbtn exportbtn" id="exportTemp" title="Download a compact summary image for email">&#11015; Export image</button>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Designation</th>
+              <th>Current $/hr</th>
+              <th>Priority $/hr</th>
+              <th>Hrs / mo</th>
+              <th>Current $/mo</th>
+              <th>Priority $/mo</th>
+              <th>Saving $/mo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rateBody"></tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td><td></td><td></td><td></td>
+              <td class="cur mono" id="ftCur"></td>
+              <td class="pri mono" id="ftPri"></td>
+              <td class="sv mono" id="ftSave"></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="hint"><span class="tagk">Editable</span> Role, current rate, Priority rate and monthly hours.</div>
+  </section>
+
+  <section class="sec pad">
+    <div class="chart-top">
+      <div>
+        <div class="eyebrow">1:1 PSW / HCA &mdash; true cost of doing it yourself</div>
+        <h2>Your own staff vs Priority's 1:1 rate</h2>
+        <div class="sub" id="burdenSub">When a resident needs a dedicated 1:1, you can put your own PSW/HCA on it, but the wage is only the start. You also carry CPP, EI, Employer Health Tax, stat pay, vacation pay and WSIB. Priority's 1:1 rate is all-in, and it runs below the regular PSW/HCA rate.</div>
+      </div>
+      <div class="table-actions">
+        <div class="seg provSeg">
+          <button data-prov="ON" class="active">Ontario</button>
+          <button data-prov="AB">Alberta</button>
+        </div>
+        <button class="tbtn exportbtn" id="exportOneOne" title="Download a compact 1:1 summary image for email">&#11015; Export image</button>
+      </div>
+    </div>
+
+    <div class="burden-grid">
+      <div class="inputs">
+        <div class="in">
+          <label>Your PSW/HCA wage <small>per hour</small></label>
+          <div class="ifield"><span>$</span><input id="bWage" type="number" step="0.01" value="35"></div>
+        </div>
+        <div class="in">
+          <label>Priority 1:1 rate <small>all-in, per hour</small></label>
+          <div class="ifield"><span>$</span><input id="bRate" type="number" step="0.01" value="30"></div>
+        </div>
+        <div class="in">
+          <label>1:1 hours <small>per month</small></label>
+          <div class="ifield"><span>#</span><input id="bHours" type="number" step="1" value="200"></div>
+        </div>
+        <div class="legend2" id="burdenLegend"></div>
+      </div>
+
+      <div>
+        <div class="compare">
+          <div class="col inhouse">
+            <div class="tot mono" id="inTot">$42.44</div>
+            <div class="barwrap"><div class="stack" id="inStack"></div></div>
+            <div class="cap">Your staff<small>wage + employer burden</small></div>
+          </div>
+          <div class="col priority">
+            <div class="tot mono" id="priTot">$30.00</div>
+            <div class="barwrap"><div class="stack" id="priStack"></div></div>
+            <div class="cap">Priority 1:1<small>all-in, no burden</small></div>
+          </div>
+        </div>
+
+        <div class="verdict">
+          <div class="v-main">
+            <div><div class="big mono" id="vHr">$12.44</div><div class="lbl">saved per 1:1 hour vs in-house</div></div>
+            <div class="pctpill" id="vPct">29% cheaper</div>
+          </div>
+          <div class="v-sub">
+            <div class="vs"><div class="k">Per month</div><div class="n mono" id="vMo">$2,488</div></div>
+            <div class="vs"><div class="k">Per year</div><div class="n mono" id="vYr">$29,850</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec pad">
+    <div class="eyebrow">Multi-year outlook</div>
+    <h2>Five-year projection <span class="lockpill">Priority rate locked</span></h2>
+    <div class="sub">In-house wages rise every year with market and statutory pressure. Priority's rate is held for the term of the agreement, so the saving compounds. Figures below use your live staffing mix and the assumed wage inflation set on the chart above.</div>
+    <div class="outlook">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Current spend</th>
+              <th>Priority spend</th>
+              <th>Annual saving</th>
+              <th>Cumulative saving</th>
+            </tr>
+          </thead>
+          <tbody id="outlookBody"></tbody>
+          <tfoot>
+            <tr class="cum">
+              <td>5-year total</td>
+              <td class="cur mono" id="olCur"></td>
+              <td class="pri mono" id="olPri"></td>
+              <td class="sv mono" id="olSave"></td>
+              <td class="sv mono" id="olCum"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="hint"><span class="tagk">Assumption</span> Current spend grows at the inflation rate on the chart; Priority spend is held flat (rate-protected).</div>
+  </section>
+
+  </div><!-- /tab-temp -->
+
+  <!-- ================= TAB 2: PERMANENT PLACEMENT ================= -->
+  <div class="tabpane" id="tab-perm">
+
+  <section class="sec pad">
+    <div class="eyebrow">Permanent Placement</div>
+    <div class="headline" id="pmHeadline">One placement fee replaces <b>$13,150</b> of hiring cost and risk.</div>
+    <div class="figrow">
+      <div class="fcard">
+        <div class="k" id="pmCardAk">Your in-house cost to hire</div>
+        <div class="v mono" id="pmCardA">$13,150</div>
+        <div class="note" id="pmCardAn">Ads + HR time + manager time + vacancy</div>
+      </div>
+      <div class="fcard">
+        <div class="k" id="pmCardBk">Priority placement fee</div>
+        <div class="v mono" id="pmCardB">$11,700</div>
+        <div class="note" id="pmCardBn">One-time, guarantee included</div>
+      </div>
+      <div class="fcard hl">
+        <div class="k">You keep</div>
+        <div class="v mono"><span class="arrow-up">&#9650;</span><span id="pmCardC">$1,450</span></div>
+        <div class="note" id="pmCardCn">11% lower than hiring in-house</div>
+      </div>
+    </div>
+    <div class="kstrip">
+      <div class="kchip"><div class="kk">Fee as % of salary</div><div class="kv mono" id="pmKFee">18%</div></div>
+      <div class="kchip"><div class="kk">Guarantee</div><div class="kv mono" id="pmKGuar">60 days</div></div>
+      <div class="kchip"><div class="kk">Replacement value</div><div class="kv sv mono" id="pmKRepl">$11,700</div></div>
+      <div class="kchip"><div class="kk">Days to fill, typical</div><div class="kv mono" id="pmKVac">60</div></div>
+    </div>
+  </section>
+
+  <section class="sec pad">
+    <div class="chart-top">
+      <div>
+        <div class="eyebrow">Model the placement live</div>
+        <h2>Priority vs <span id="pmVsLabel">hiring it yourself</span></h2>
+        <div class="sub" id="pmSub">Every input is editable. The in-house side counts what a vacancy really costs: advertising, HR and manager hours, and the cover cost while the seat is empty.</div>
+      </div>
+      <div class="table-actions">
+        <div class="seg" id="pmBaseSeg">
+          <button data-base="inhouse" class="active">vs in-house hiring</button>
+          <button data-base="temp">vs staying on temps</button>
+        </div>
+        <div class="seg provSeg">
+          <button data-prov="ON" class="active">Ontario</button>
+          <button data-prov="AB">Alberta</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="burden-grid">
+      <div class="inputs">
+        <div class="in">
+          <label>Role</label>
+          <div class="ifield"><select id="pmRole">
+            <option value="hca">HCA / PSW</option>
+            <option value="rpn" selected>RPN</option>
+            <option value="rn">RN</option>
+            <option value="lead">Leadership / Management</option>
+          </select></div>
+        </div>
+        <div class="in">
+          <label>First-year salary <small>per year</small></label>
+          <div class="ifield"><span>$</span><input id="pmSalary" type="number" step="500" value="65000"></div>
+        </div>
+        <div class="in">
+          <label>Placement fee <small>% of first-year salary &middot; <span class="tagw">editable default</span></small></label>
+          <div class="ifield"><input id="pmFeePct" type="number" step="0.5" value="18"><span>%</span></div>
+        </div>
+        <div class="in">
+          <label>Guarantee <small>free replacement window, days</small></label>
+          <div class="ifield"><input id="pmGuarantee" type="number" step="5" value="60"><span>days</span></div>
+        </div>
+
+        <div id="pmInhouseInputs">
+          <div class="in" style="margin-top:6px">
+            <label>Job advertising <small>postings, boards, sponsored ads</small></label>
+            <div class="ifield"><span>$</span><input id="pmAds" type="number" step="50" value="800"></div>
+          </div>
+          <div class="in" style="margin-top:18px">
+            <label>HR / recruiter time <small>hours &times; $/hr</small></label>
+            <div style="display:flex;gap:10px">
+              <div class="ifield" style="flex:1"><span>#</span><input id="pmHrHours" type="number" step="1" value="20"></div>
+              <div class="ifield" style="flex:1"><span>$</span><input id="pmHrRate" type="number" step="1" value="45"></div>
+            </div>
+          </div>
+          <div class="in" style="margin-top:18px">
+            <label>Hiring-manager time <small>hours &times; $/hr</small></label>
+            <div style="display:flex;gap:10px">
+              <div class="ifield" style="flex:1"><span>#</span><input id="pmMgrHours" type="number" step="1" value="10"></div>
+              <div class="ifield" style="flex:1"><span>$</span><input id="pmMgrRate" type="number" step="1" value="60"></div>
+            </div>
+          </div>
+          <div class="in" style="margin-top:18px">
+            <label>Vacancy cover cost <small>OT / agency cover, $ per month &times; months open</small></label>
+            <div style="display:flex;gap:10px">
+              <div class="ifield" style="flex:1"><span>$</span><input id="pmVacCost" type="number" step="100" value="2500"></div>
+              <div class="ifield" style="flex:1"><span>mo</span><input id="pmVacMonths" type="number" step="0.5" value="2"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="pmTempInputs" style="display:none">
+          <div class="in" style="margin-top:6px">
+            <label>Agency temp bill rate <small>per hour, current</small></label>
+            <div class="ifield"><span>$</span><input id="pmTempRate" type="number" step="0.25" value="65"></div>
+          </div>
+          <div class="in" style="margin-top:18px">
+            <label>Hours covered <small>per week</small></label>
+            <div class="ifield"><span>#</span><input id="pmTempHours" type="number" step="0.5" value="37.5"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="compare">
+          <div class="col inhouse">
+            <div class="tot mono" id="pmInTot">$13,150</div>
+            <div class="barwrap"><div class="stack" id="pmInStack"></div></div>
+            <div class="cap" id="pmInCap">Hiring in-house<small>ads + time + vacancy</small></div>
+          </div>
+          <div class="col priority">
+            <div class="tot mono" id="pmPriTot">$11,700</div>
+            <div class="barwrap"><div class="stack" id="pmPriStack"></div></div>
+            <div class="cap" id="pmPriCap">Priority placement<small>one-time fee, all-in</small></div>
+          </div>
+        </div>
+
+        <div class="verdict">
+          <div class="v-main">
+            <div><div class="big mono" id="pmVMain">$1,450</div><div class="lbl" id="pmVLbl">kept vs hiring in-house</div></div>
+            <div class="pctpill" id="pmVPct">11% lower</div>
+          </div>
+          <div class="v-sub">
+            <div class="vs"><div class="k" id="pmS1k">Guarantee value</div><div class="n mono" id="pmS1">$11,700</div></div>
+            <div class="vs"><div class="k" id="pmS2k">Fee as % of salary</div><div class="n mono" id="pmS2">18%</div></div>
+          </div>
+        </div>
+        <div class="legend2" id="pmLegend" style="margin-top:18px"></div>
+      </div>
+    </div>
+    <div class="hint" id="pmHint"><span class="tagw">Unconfirmed defaults</span> Fee tiers default to HCA/PSW 15% &middot; RPN 18% &middot; RN 20% &middot; Leadership 25% of first-year salary. Adjust to the agreed fee for this deal.</div>
+  </section>
+
+  </div><!-- /tab-perm -->
+
+  <!-- ================= TAB 3: TEMP-TO-PERM ================= -->
+  <div class="tabpane" id="tab-t2p">
+
+  <section class="sec pad">
+    <div class="eyebrow">Temp-to-Perm Conversion</div>
+    <div class="headline">Trial the person first. The conversion fee <b id="tpHl">shrinks every week</b> they work.</div>
+    <div class="figrow">
+      <div class="fcard">
+        <div class="k">Temp cost to conversion</div>
+        <div class="v mono" id="tpCardA">$21,938</div>
+        <div class="note" id="tpCardAn">12 weeks &times; 37.5 hrs at your bill rate</div>
+      </div>
+      <div class="fcard">
+        <div class="k">Conversion fee at that point</div>
+        <div class="v mono" id="tpCardB">$6,581</div>
+        <div class="note" id="tpCardBn">Declines with every hour worked</div>
+      </div>
+      <div class="fcard hl">
+        <div class="k">Fee reduction earned</div>
+        <div class="v mono"><span class="arrow-up">&#9650;</span><span id="tpCardC">$5,119</span></div>
+        <div class="note" id="tpCardCn">vs converting on day one</div>
+      </div>
+    </div>
+    <div class="kstrip">
+      <div class="kchip"><div class="kk">Fee fully waived at</div><div class="kv mono" id="tpKWaive">wk 28</div></div>
+      <div class="kchip"><div class="kk">Hours worked at conversion</div><div class="kv mono" id="tpKHours">450</div></div>
+      <div class="kchip"><div class="kk">Break-even vs direct hire</div><div class="kv mono" id="tpKBreak">wk 9</div></div>
+      <div class="kchip"><div class="kk">Year-1 difference</div><div class="kv sv mono" id="tpKDiff">$1,200</div></div>
+    </div>
+  </section>
+
+  <section class="sec pad">
+    <div class="chart-top">
+      <div>
+        <div class="eyebrow">Model the conversion live</div>
+        <h2>Total year-one cost by conversion week</h2>
+        <div class="sub">Each point is the full year-one cost if you convert that week: temp hours billed so far, the conversion fee at that point, then salary plus employer burden for the rest of the year. The flat line is hiring direct on day one.</div>
+      </div>
+      <div class="table-actions">
+        <div class="seg provSeg">
+          <button data-prov="ON" class="active">Ontario</button>
+          <button data-prov="AB">Alberta</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="burden-grid" style="grid-template-columns:320px 1fr">
+      <div class="inputs">
+        <div class="in">
+          <label>Temp bill rate <small>per hour</small></label>
+          <div class="ifield"><span>$</span><input id="tpRate" type="number" step="0.25" value="48.75"></div>
+        </div>
+        <div class="in">
+          <label>Hours <small>per week</small></label>
+          <div class="ifield"><span>#</span><input id="tpHours" type="number" step="0.5" value="37.5"></div>
+        </div>
+        <div class="in">
+          <label>Convert at week</label>
+          <div class="ifield"><span>wk</span><input id="tpWeek" type="number" step="1" min="1" max="52" value="12"></div>
+        </div>
+        <div class="in">
+          <label>First-year salary <small>if hired permanently</small></label>
+          <div class="ifield"><span>$</span><input id="tpSalary" type="number" step="500" value="65000"></div>
+        </div>
+        <div class="in">
+          <label>Conversion fee at day one <small>% of salary &middot; <span class="tagw">editable default</span></small></label>
+          <div class="ifield"><input id="tpFeePct" type="number" step="0.5" value="18"><span>%</span></div>
+        </div>
+        <div class="in">
+          <label>Fee fully waived after <small>hours on assignment</small></label>
+          <div class="ifield"><span>#</span><input id="tpWaiveHours" type="number" step="20" value="1040"></div>
+        </div>
+        <div class="legend2" id="tpLegend"></div>
+      </div>
+
+      <div>
+        <div class="chart-box" style="height:380px"><canvas id="tpChart"></canvas></div>
+        <div class="verdict" style="margin-top:24px">
+          <div class="v-main">
+            <div><div class="big mono" id="tpVMain">$6,581</div><div class="lbl" id="tpVLbl">conversion fee at week 12</div></div>
+            <div class="pctpill" id="tpVPct">44% reduced</div>
+          </div>
+          <div class="v-sub">
+            <div class="vs"><div class="k">T2P route, year 1</div><div class="n mono" id="tpS1">$94,000</div></div>
+            <div class="vs"><div class="k">Direct hire, year 1</div><div class="n mono" id="tpS2">$92,800</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hint"><span class="tagw">Unconfirmed default</span> Fee schedule: starts at the day-one % and declines linearly to $0 at the waive threshold. Adjust both to the agreed schedule for this deal.</div>
+  </section>
+
+  </div><!-- /tab-t2p -->
+
+  <footer>
+    <b>Priority Healthcare Staffing Solutions Inc.</b><br>
+    <span id="burdenFootnote"></span><br>
+    *Cumulative figures assume the wage-inflation rate entered above applies to in-house cost while the Priority rate is held flat. Figures are illustrative and recalculate with the inputs you enter. Placement-fee tiers and conversion-fee schedules shown are editable defaults, not contracted pricing.
+  </footer>
+</div>
+
+<!-- ================= REPORT OVERLAY ================= -->
+<div id="reportOverlay">
+  <div class="report-tools">
+    <button class="tbtn" id="rpBack">&#8592; Back to tool</button>
+    <button class="tbtn primary" id="rpPrint">&#128424; Print / Save as PDF</button>
+  </div>
+  <div class="report-page">
+    <div class="rp-accent"></div>
+    <div class="rp-head">
+      <img id="rpLogo" alt="Priority Healthcare">
+      <div class="rp-meta" id="rpMeta"></div>
+    </div>
+    <div class="rp-title">
+      <div class="eyebrow" id="rpEyebrow">Cost Analysis Report</div>
+      <h1 id="rpHeadline"></h1>
+    </div>
+    <div class="rp-body" id="rpBody"></div>
+    <div class="rp-foot" id="rpFoot"></div>
+  </div>
+</div>
+
+<script>
+const NAVY="#1b2440", AZURE="#10A0DF", COST="#d9786b", COST_DEEP="#c2604f", SAVE="#13a06b", SAVE_DEEP="#0c7d52";
+
+const BURDEN_SETS={
+  ON:[
+    {name:"CPP",                 pct:0.0595, color:"#3f7fd6"},
+    {name:"EI",                  pct:0.0228, color:"#23b3c4"},
+    {name:"Employer Health Tax", pct:0.0195, color:"#8b7ad6"},
+    {name:"Stat Pay",            pct:0.0500, color:"#e0a23c"},
+    {name:"Vacation Pay",        pct:0.0400, color:"#3fb389"},
+    {name:"WSIB",                pct:0.0207, color:"#d678a6"},
+  ],
+  AB:[
+    {name:"CPP",                 pct:0.0595, color:"#3f7fd6"},
+    {name:"EI",                  pct:0.0228, color:"#23b3c4"},
+    {name:"Stat Pay",            pct:0.0500, color:"#e0a23c"},
+    {name:"Vacation Pay",        pct:0.0400, color:"#3fb389"},
+    {name:"WCB",                 pct:0.0313, color:"#d678a6"},
+  ]
+};
+let province="ON";
+function burdenPct(){ return BURDEN_SETS[province].reduce(function(s,b){return s+b.pct;},0); }
+
+const RATE_DEFAULTS=[
+  {role:"PSW 1:1", current:35,  proposed:30,  hours:200},
+  {role:"PSW",     current:40,  proposed:35,  hours:200},
+  {role:"RPN",     current:70,  proposed:65,  hours:200},
+  {role:"RN",      current:115, proposed:100, hours:200},
+];
+let rates = JSON.parse(JSON.stringify(RATE_DEFAULTS));
+let chartMode="12mo";
+let chart, tpChartObj;
+let activeTab="temp";
+
+const money  = n => "$"+Math.round(n).toLocaleString();
+const money2 = n => "$"+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+function fmtK(v){ v=Math.round(v);
+  if(v>=10000)  return "$"+(v/1000).toFixed(0)+"k";
+  if(v>=1000)   return "$"+(v/1000).toFixed(1)+"k";
+  return "$"+v;
+}
+const num = id => { const v=parseFloat(document.getElementById(id).value); return isNaN(v)?0:v; };
+function inflation(){ return num("inflation")/100; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function animateNumber(el,to,fmt){
+  fmt=fmt||money;
+  if(typeof requestAnimationFrame!=="function"){el.textContent=fmt(to);el.dataset.cur=to;return;}
+  const from=parseFloat(el.dataset.cur||"0");
+  if(Math.abs(to-from)<0.5){el.textContent=fmt(to);el.dataset.cur=to;return;}
+  const start=performance.now(),dur=600;
+  function step(t){
+    const p=Math.min((t-start)/dur,1), e=1-Math.pow(1-p,3);
+    el.textContent=fmt(from+(to-from)*e);
+    if(p<1) requestAnimationFrame(step); else el.dataset.cur=to;
+  }
+  requestAnimationFrame(step);
+}
+
+/* ================= TAB SWITCHING ================= */
+document.getElementById("tabBar").addEventListener("click",function(e){
+  if(e.target.tagName!=="BUTTON")return;
+  document.querySelectorAll("#tabBar button").forEach(function(b){b.classList.remove("active");});
+  e.target.classList.add("active");
+  activeTab=e.target.dataset.tab;
+  document.querySelectorAll(".tabpane").forEach(function(p){p.classList.remove("active");});
+  document.getElementById("tab-"+activeTab).classList.add("active");
+  if(activeTab==="temp" && chart){ chart.resize(); chart.update(); }
+  if(activeTab==="t2p"){ ensureTpChart(); renderT2P(); }
+  if(activeTab==="perm"){ renderPerm(); }
+});
+
+/* ================= PREPARED FOR/BY AUTO-HIDE ================= */
+const prepFields=document.getElementById("prepFields"), prepEdit=document.getElementById("prepEdit");
+function maybeCollapsePrep(){
+  const f=document.getElementById("facName").value.trim();
+  const r=document.getElementById("repName").value.trim();
+  if(f||r){ prepFields.classList.add("collapsed"); prepEdit.classList.add("show");
+    prepEdit.innerHTML="&#9998; "+esc(f||"Details"); }
+}
+["facName","repName"].forEach(function(id){
+  document.getElementById(id).addEventListener("blur",function(){ setTimeout(maybeCollapsePrep,150); });
+  document.getElementById(id).addEventListener("keydown",function(e){ if(e.key==="Enter") e.target.blur(); });
+});
+prepEdit.addEventListener("click",function(){
+  prepFields.classList.remove("collapsed"); prepEdit.classList.remove("show");
+  document.getElementById("facName").focus();
+});
+document.getElementById("facName").addEventListener("input",function(e){
+  const v=e.target.value.trim();
+  document.getElementById("eyebrowMain").textContent = v ? "Cost Analysis · "+v : "Cost Analysis";
+  document.title = v ? "Priority Healthcare — Cost Analysis — "+v : "Priority Healthcare — Cost Analysis Hub";
+});
+
+/* ================= PROVINCE (synced across tabs) ================= */
+function setProvince(p){
+  province=p;
+  document.querySelectorAll(".provSeg").forEach(function(seg){
+    seg.querySelectorAll("button").forEach(function(b){ b.classList.toggle("active", b.dataset.prov===p); });
+  });
+  updateProvinceText();
+  renderBurden(); renderPerm(); renderT2P();
+}
+document.querySelectorAll(".provSeg").forEach(function(seg){
+  seg.addEventListener("click",function(e){
+    if(e.target.tagName!=="BUTTON")return;
+    setProvince(e.target.dataset.prov);
+  });
+});
+function updateProvinceText(){
+  var sub=document.getElementById("burdenSub");
+  if(sub){
+    sub.textContent = province==="ON"
+      ? "When a resident needs a dedicated 1:1, you can put your own PSW/HCA on it, but the wage is only the start. In Ontario you also carry CPP, EI, Employer Health Tax, stat pay, vacation pay and WSIB. Priority's 1:1 rate is all-in, and it runs below the regular PSW/HCA rate."
+      : "When a resident needs a dedicated 1:1, you can put your own PSW/HCA on it, but the wage is only the start. In Alberta you carry CPP, EI, stat pay, vacation pay and WCB (Alberta has no Employer Health Tax). Priority's 1:1 rate is all-in, and it runs below the regular PSW/HCA rate.";
+  }
+  var fn=document.getElementById("burdenFootnote");
+  if(fn){
+    fn.innerHTML = province==="ON"
+      ? "Statutory burden applied to in-house wages (Ontario): CPP 5.95% &middot; EI 2.28% &middot; Employer Health Tax 1.95% &middot; Stat Pay 5.00% &middot; Vacation Pay 4.00% &middot; WSIB 2.07% (nursing &amp; residential care). WSIB rate is class and experience rated, confirm your facility's actual rate."
+      : "Statutory burden applied to in-house wages (Alberta): CPP 5.95% &middot; EI 2.28% &middot; Stat Pay 5.00% &middot; Vacation Pay 4.00% &middot; WCB 3.13% (Industry 82808, Continuing Care Facilities, 2026). Alberta has no Employer Health Tax. WCB rate is industry and experience rated, confirm your facility's actual rate.";
+  }
+}
+
+/* ================= TAB 1: TEMP STAFFING (ported) ================= */
+function renderRates(){
+  const tb=document.getElementById("rateBody"); tb.innerHTML="";
+  rates.forEach((r,i)=>{
+    const cm=r.current*r.hours, pm=r.proposed*r.hours, sv=cm-pm;
+    const tr=document.createElement("tr");
+    tr.innerHTML=
+      '<td><input class="cell role" type="text" data-i="'+i+'" data-f="role" value="'+(r.role||"").replace(/"/g,"&quot;")+'"></td>'+
+      '<td><input class="cell" type="number" step="0.01" data-i="'+i+'" data-f="current" value="'+r.current+'"></td>'+
+      '<td><input class="cell" type="number" step="0.01" data-i="'+i+'" data-f="proposed" value="'+r.proposed+'"></td>'+
+      '<td><input class="cell" type="number" step="1" data-i="'+i+'" data-f="hours" value="'+r.hours+'"></td>'+
+      '<td class="cur mono">'+money(cm)+'</td>'+
+      '<td class="pri mono">'+money(pm)+'</td>'+
+      '<td class="sv mono">'+money(sv)+'</td>'+
+      '<td class="rm"><button class="rmbtn" data-rm="'+i+'" title="Remove role">&times;</button></td>';
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll("input.cell").forEach(inp=>{
+    inp.addEventListener("input",e=>{
+      const f=e.target.dataset.f;
+      const val = f==="role" ? e.target.value : (parseFloat(e.target.value)||0);
+      rates[+e.target.dataset.i][f]=val;
+      refreshRates(false);
+    });
+  });
+  tb.querySelectorAll(".rmbtn").forEach(btn=>{
+    btn.addEventListener("click",e=>{
+      const i=+e.currentTarget.dataset.rm;
+      if(rates.length<=1) return;
+      rates.splice(i,1);
+      refreshRates(true);
+    });
+  });
+}
+function rateTotals(){
+  let cur=0,pri=0;
+  rates.forEach(r=>{cur+=r.current*r.hours; pri+=r.proposed*r.hours;});
+  return {cur,pri,save:cur-pri};
+}
+function projectYears(n){
+  const t=rateTotals();
+  const g=inflation();
+  const rows=[]; let cumCur=0,cumPri=0,cumSave=0;
+  for(let y=1;y<=n;y++){
+    const cur=t.cur*12*Math.pow(1+g,y-1);
+    const pri=t.pri*12;
+    const save=cur-pri;
+    cumCur+=cur; cumPri+=pri; cumSave+=save;
+    rows.push({y,cur,pri,save,cumCur,cumPri,cumSave});
+  }
+  return rows;
+}
+function refreshRates(rerender){
+  if(rerender!==false) renderRates();
+  else{
+    const rows=document.querySelectorAll("#rateBody tr");
+    rates.forEach((r,i)=>{
+      const tds=rows[i].querySelectorAll("td");
+      tds[4].textContent=money(r.current*r.hours);
+      tds[5].textContent=money(r.proposed*r.hours);
+      tds[6].textContent=money(r.current*r.hours-r.proposed*r.hours);
+    });
+  }
+  const t=rateTotals();
+  document.getElementById("ftCur").textContent=money(t.cur);
+  document.getElementById("ftPri").textContent=money(t.pri);
+  document.getElementById("ftSave").textContent=money(t.save);
+  const yrSave=t.save*12, yrCur=t.cur*12, yrPri=t.pri*12;
+  animateNumber(document.getElementById("hlNum"),yrSave);
+  animateNumber(document.getElementById("figCur"),yrCur);
+  animateNumber(document.getElementById("figPri"),yrPri);
+  animateNumber(document.getElementById("figSave"),yrSave);
+  const pct = t.cur>0 ? (t.save/t.cur*100) : 0;
+  document.getElementById("figPct").innerHTML=pct.toFixed(1)+"% lower &middot; "+money(t.save)+" / month";
+  document.getElementById("kMo").textContent=money(t.save);
+  document.getElementById("kPct").textContent=pct.toFixed(1)+"%";
+  const p5=projectYears(5);
+  document.getElementById("k3yr").textContent=fmtK(p5[2].cumSave);
+  document.getElementById("k5yr").textContent=fmtK(p5[4].cumSave);
+  updateChart();
+  renderOutlook();
+}
+function renderOutlook(){
+  const rows=projectYears(5);
+  const tb=document.getElementById("outlookBody"); tb.innerHTML="";
+  rows.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML='<td>Year '+r.y+'</td>'+
+      '<td class="cur mono">'+money(r.cur)+'</td>'+
+      '<td class="pri mono">'+money(r.pri)+'</td>'+
+      '<td class="sv mono">'+money(r.save)+'</td>'+
+      '<td class="sv mono">'+money(r.cumSave)+'</td>';
+    tb.appendChild(tr);
+  });
+  const last=rows[rows.length-1];
+  document.getElementById("olCur").textContent=money(last.cumCur);
+  document.getElementById("olPri").textContent=money(last.cumPri);
+  document.getElementById("olSave").textContent=money(last.cumSave);
+  document.getElementById("olCum").textContent=money(last.cumSave);
+}
+function chartData(){
+  const t=rateTotals();
+  if(chartMode==="12mo"){
+    const labels=[],cur=[],pri=[];
+    for(let m=1;m<=12;m++){labels.push("M"+m);cur.push(t.cur*m);pri.push(t.pri*m);}
+    return {labels,cur,pri,end:t.save*12,endLabel:"by month 12"};
+  }else{
+    const n = chartMode==="3yr" ? 3 : 5;
+    const rows=projectYears(n);
+    const labels=rows.map(r=>"Yr "+r.y), cur=rows.map(r=>r.cumCur), pri=rows.map(r=>r.cumPri);
+    return {labels,cur,pri,end:rows[rows.length-1].cumSave,endLabel:"by year "+n};
+  }
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+const pairSavingPlugin={
+  id:"pairSaving",
+  afterDatasetsDraw(c){
+    try{
+      const m0=c.getDatasetMeta(0), m1=c.getDatasetMeta(1);
+      if(!m0||!m1||!m0.data.length)return;
+      const ctx=c.ctx, ds0=c.data.datasets[0].data, ds1=c.data.datasets[1].data;
+      ctx.save();
+      ctx.font="700 11px 'IBM Plex Mono', monospace";
+      ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+      for(let i=0;i<m0.data.length;i++){
+        const b0=m0.data[i], b1=m1.data[i];
+        if(!b0||!b1)continue;
+        const xc=(b0.x+b1.x)/2;
+        const topY=Math.min(b0.y,b1.y);
+        const save=ds0[i]-ds1[i];
+        if(save<=0)continue;
+        const txt=fmtK(save);
+        const tw=ctx.measureText(txt).width;
+        const padX=6, bw=tw+padX*2, bh=17;
+        let by=topY-bh-6;
+        if(by<c.chartArea.top) by=c.chartArea.top;
+        ctx.fillStyle="rgba(19,160,107,.13)";
+        roundRect(ctx,xc-bw/2,by,bw,bh,8); ctx.fill();
+        ctx.fillStyle=SAVE_DEEP;
+        ctx.fillText(txt,xc,by+bh-5);
+      }
+      ctx.restore();
+    }catch(e){}
+  }
+};
+function buildChart(){
+  if(typeof Chart==="undefined") return;
+  const ctx=document.getElementById("costChart");
+  const d=chartData();
+  const grad=(c,top,bottom)=>{
+    const ch=c.chart, area=ch.chartArea;
+    if(!area) return top;
+    const g=ch.ctx.createLinearGradient(0,area.top,0,area.bottom);
+    g.addColorStop(0,top); g.addColorStop(1,bottom);
+    return g;
+  };
+  chart=new Chart(ctx,{
+    type:"bar",
+    data:{labels:d.labels,datasets:[
+      { label:"Current cost", data:d.cur,
+        backgroundColor:c=>grad(c,"#e3958a","#c2604f"),
+        hoverBackgroundColor:"#bd5848",
+        borderRadius:5, borderSkipped:false, categoryPercentage:0.74, barPercentage:0.92 },
+      { label:"Priority cost", data:d.pri,
+        backgroundColor:c=>grad(c,"#3bb6ec","#0a85bd"),
+        hoverBackgroundColor:"#0a85bd",
+        borderRadius:5, borderSkipped:false, categoryPercentage:0.74, barPercentage:0.92 }
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      devicePixelRatio:Math.min(3,Math.max(2,(window.devicePixelRatio||1))),
+      layout:{padding:{top:30,right:10,left:4,bottom:2}},
+      interaction:{mode:"index",intersect:false},
+      animation:{duration:700,easing:"easeOutCubic"},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#fff", borderColor:"#e7eaf1", borderWidth:1, padding:13, cornerRadius:9,
+          titleColor:NAVY, bodyColor:"#5e6678", titleFont:{family:"Archivo",weight:"700",size:13},
+          bodyFont:{family:"IBM Plex Mono",size:12.5}, bodySpacing:6, displayColors:true, boxWidth:9, boxHeight:9, boxPadding:5,
+          callbacks:{
+            label:function(c){return "  "+c.dataset.label+":  "+money(c.parsed.y);},
+            afterBody:function(items){
+              if(items.length<2)return"";
+              const a=items.find(function(i){return i.dataset.label==="Current cost";});
+              const b=items.find(function(i){return i.dataset.label==="Priority cost";});
+              if(!a||!b)return"";
+              return "\n  Saved so far:  "+money(a.parsed.y-b.parsed.y);
+            }
+          }
+        }
+      },
+      scales:{
+        y:{grace:"8%",grid:{color:"#eef0f5",drawTicks:false},border:{display:false},
+           ticks:{color:"#828a9c",font:{family:"IBM Plex Mono",size:10.5},padding:10,
+             callback:function(v){return v>=1000 ? "$"+(v/1000).toFixed(0)+"k" : "$"+v;}}},
+        x:{grid:{display:false},border:{color:"#d6dbe6"},
+           ticks:{color:"#828a9c",font:{family:"IBM Plex Mono",size:11},maxRotation:0,autoSkip:false}}
+      }
+    },
+    plugins:[pairSavingPlugin]
+  });
+}
+function updateChart(){
+  const d=chartData();
+  const note=document.getElementById("inflNote");
+  const g=inflation();
+  animateNumber(document.getElementById("periodSaved"),d.end);
+  document.getElementById("periodLabel").textContent=d.endLabel;
+  if(chartMode==="12mo"){
+    note.innerHTML='<span class="tagk">Year 1</span> Monthly accumulation at your current mix. Switch to 3 or 5 years to see the rate-protection effect.';
+  }else{
+    note.innerHTML='<span class="tagk">Rate protected</span> Current cost grows '+(g*100).toFixed(1)+'% per year; Priority cost held flat for the term, so the gap widens over time.';
+  }
+  if(!chart)return;
+  chart.data.labels=d.labels;
+  chart.data.datasets[0].data=d.cur;
+  chart.data.datasets[1].data=d.pri;
+  chart.update();
+}
+function renderBurden(){
+  const wage =num("bWage"), rate=num("bRate"), hours=num("bHours");
+  const parts=[{name:"Base wage",amt:wage,color:NAVY}]
+    .concat(BURDEN_SETS[province].map(function(b){return {name:b.name,amt:wage*b.pct,color:b.color};}));
+  const loaded=parts.reduce(function(s,p){return s+p.amt;},0);
+  const maxV=Math.max(loaded,rate)||1;
+  document.getElementById("inTot").textContent=money2(loaded);
+  document.getElementById("priTot").textContent=money2(rate);
+  const inStack=document.getElementById("inStack");
+  inStack.style.height=(loaded/maxV*100)+"%";
+  inStack.innerHTML=parts.map(function(p){
+    return '<div class="seg-b" style="height:'+(loaded>0?p.amt/loaded*100:0)+'%;background:'+p.color+'" title="'+p.name+': '+money2(p.amt)+'"></div>';
+  }).join("");
+  const priStack=document.getElementById("priStack");
+  priStack.style.height=(rate/maxV*100)+"%";
+  priStack.innerHTML='<div class="seg-b" style="height:100%;background:linear-gradient(180deg,'+AZURE+',#0c8fc7)"></div>';
+  const perHr=loaded-rate, perMo=perHr*hours, perYr=perMo*12, cheaper=perHr>=0;
+  document.getElementById("vHr").textContent=(cheaper?"":"−")+money2(Math.abs(perHr));
+  document.getElementById("vHr").style.color=cheaper?SAVE_DEEP:COST_DEEP;
+  document.getElementById("vMo").textContent=money(perMo);
+  document.getElementById("vYr").textContent=money(perYr);
+  document.querySelectorAll("#tab-temp .v-sub .n").forEach(function(n){n.style.color=cheaper?SAVE_DEEP:COST_DEEP;});
+  const pct=loaded>0?Math.abs(perHr)/loaded*100:0;
+  const pill=document.getElementById("vPct");
+  pill.textContent=pct.toFixed(0)+(cheaper?"% cheaper":"% more");
+  pill.style.background=cheaper?SAVE:COST_DEEP;
+  const lg=document.getElementById("burdenLegend");
+  lg.innerHTML=parts.map(function(p){
+    return '<div class="l2"><div class="nm"><i style="background:'+p.color+'"></i>'+p.name+'</div><div class="amt mono">'+money2(p.amt)+'</div></div>';
+  }).join("")
+  + '<div class="l2 total"><div class="nm">Loaded in-house cost</div><div class="amt mono">'+money2(loaded)+'</div></div>';
+}
+document.getElementById("seg").addEventListener("click",function(e){
+  if(e.target.tagName!=="BUTTON")return;
+  document.querySelectorAll("#seg button").forEach(function(b){b.classList.remove("active");});
+  e.target.classList.add("active");
+  chartMode=e.target.dataset.mode;
+  updateChart();
+});
+document.getElementById("resetRates").addEventListener("click",function(){
+  rates=JSON.parse(JSON.stringify(RATE_DEFAULTS));
+  refreshRates(true);
+});
+document.getElementById("addRow").addEventListener("click",function(){
+  rates.push({role:"New role", current:0, proposed:0, hours:200});
+  refreshRates(true);
+});
+document.getElementById("inflation").addEventListener("input",function(){updateChart();renderOutlook();
+  const p5=projectYears(5);
+  document.getElementById("k3yr").textContent=fmtK(p5[2].cumSave);
+  document.getElementById("k5yr").textContent=fmtK(p5[4].cumSave);
+});
+["bWage","bRate","bHours"].forEach(function(id){document.getElementById(id).addEventListener("input",renderBurden);});
+
+/* ================= TAB 2: PERMANENT PLACEMENT ================= */
+const ROLE_DEFAULTS={
+  hca :{label:"HCA / PSW",              pct:15, salary:48000},
+  rpn :{label:"RPN",                    pct:18, salary:65000},
+  rn  :{label:"RN",                     pct:20, salary:85000},
+  lead:{label:"Leadership / Management",pct:25, salary:100000}
+};
+let pmBase="inhouse";
+document.getElementById("pmRole").addEventListener("change",function(e){
+  const d=ROLE_DEFAULTS[e.target.value];
+  document.getElementById("pmFeePct").value=d.pct;
+  document.getElementById("pmSalary").value=d.salary;
+  renderPerm();
+});
+document.getElementById("pmBaseSeg").addEventListener("click",function(e){
+  if(e.target.tagName!=="BUTTON")return;
+  document.querySelectorAll("#pmBaseSeg button").forEach(function(b){b.classList.remove("active");});
+  e.target.classList.add("active");
+  pmBase=e.target.dataset.base;
+  document.getElementById("pmInhouseInputs").style.display = pmBase==="inhouse" ? "" : "none";
+  document.getElementById("pmTempInputs").style.display   = pmBase==="temp" ? "" : "none";
+  renderPerm();
+});
+["pmSalary","pmFeePct","pmGuarantee","pmAds","pmHrHours","pmHrRate","pmMgrHours","pmMgrRate","pmVacCost","pmVacMonths","pmTempRate","pmTempHours"]
+  .forEach(function(id){document.getElementById(id).addEventListener("input",renderPerm);});
+
+function permCalc(){
+  const salary=num("pmSalary"), pct=num("pmFeePct")/100, guar=num("pmGuarantee");
+  const fee=salary*pct;
+  const inParts=[
+    {name:"Job advertising",     amt:num("pmAds"),                       color:"#3f7fd6"},
+    {name:"HR / recruiter time", amt:num("pmHrHours")*num("pmHrRate"),   color:"#23b3c4"},
+    {name:"Hiring-manager time", amt:num("pmMgrHours")*num("pmMgrRate"), color:"#e0a23c"},
+    {name:"Vacancy cover cost",  amt:num("pmVacCost")*num("pmVacMonths"),color:"#d678a6"}
+  ];
+  const inTotal=inParts.reduce(function(s,p){return s+p.amt;},0);
+  const b=burdenPct();
+  const tempAnnual=num("pmTempRate")*num("pmTempHours")*52;
+  const permParts=[
+    {name:"First-year salary",        amt:salary,    color:NAVY},
+    {name:"Employer burden ("+(b*100).toFixed(1)+"%)", amt:salary*b, color:"#8b7ad6"},
+    {name:"Priority placement fee",   amt:fee,       color:AZURE}
+  ];
+  const permAnnual=salary*(1+b)+fee;
+  return {salary,pct,guar,fee,inParts,inTotal,tempAnnual,permParts,permAnnual,b};
+}
+function setStack(elId,parts,total,maxV){
+  const el=document.getElementById(elId);
+  el.style.height=(maxV>0?total/maxV*100:0)+"%";
+  el.innerHTML=parts.map(function(p){
+    return '<div class="seg-b" style="height:'+(total>0?p.amt/total*100:0)+'%;background:'+p.color+'" title="'+p.name+': '+money(p.amt)+'"></div>';
+  }).join("");
+}
+function renderPerm(){
+  const c=permCalc();
+  const roleLbl=ROLE_DEFAULTS[document.getElementById("pmRole").value].label;
+  let aTotal,bTotal,aParts,bParts,aCapMain,aCapSub,bCapMain,bCapSub,saveLbl,hl;
+  if(pmBase==="inhouse"){
+    aTotal=c.inTotal; aParts=c.inParts;
+    bTotal=c.fee; bParts=[{name:"Priority placement fee",amt:c.fee,color:AZURE}];
+    aCapMain="Hiring in-house"; aCapSub="ads + time + vacancy";
+    bCapMain="Priority placement"; bCapSub="one-time fee, all-in";
+    saveLbl="kept vs hiring in-house";
+    document.getElementById("pmVsLabel").textContent="hiring it yourself";
+    document.getElementById("pmSub").textContent="Every input is editable. The in-house side counts what a vacancy really costs: advertising, HR and manager hours, and the cover cost while the seat is empty.";
+    document.getElementById("pmCardAk").textContent="Your in-house cost to hire";
+    document.getElementById("pmCardAn").textContent="Ads + HR time + manager time + vacancy";
+    document.getElementById("pmCardBk").textContent="Priority placement fee";
+    document.getElementById("pmCardBn").textContent="One-time, "+c.guar+"-day guarantee included";
+    hl="One placement fee replaces <b>"+money(Math.max(c.inTotal,0))+"</b> of hiring cost and risk.";
+  }else{
+    aTotal=c.tempAnnual; aParts=[{name:"12 months of agency temp cover",amt:c.tempAnnual,color:COST_DEEP}];
+    bTotal=c.permAnnual; bParts=c.permParts;
+    aCapMain="Staying on temps"; aCapSub="12 months at current bill rate";
+    bCapMain="Perm hire via Priority"; bCapSub="salary + burden + fee, year 1";
+    saveLbl="kept in year 1 vs staying on temps";
+    document.getElementById("pmVsLabel").textContent="staying on agency temps";
+    document.getElementById("pmSub").textContent="Every input is editable. Compares 12 months of agency temp coverage against converting the seat to a permanent hire placed by Priority: salary, employer burden, and the one-time placement fee.";
+    document.getElementById("pmCardAk").textContent="12 months on agency temps";
+    document.getElementById("pmCardAn").textContent="Bill rate × hours × 52 weeks";
+    document.getElementById("pmCardBk").textContent="Perm hire via Priority, year 1";
+    document.getElementById("pmCardBn").textContent="Salary + burden + one-time fee";
+    hl="Converting this seat to permanent keeps <b>"+money(Math.max(c.tempAnnual-c.permAnnual,0))+"</b> in year one.";
+  }
+  const diff=aTotal-bTotal, cheaper=diff>=0;
+  const maxV=Math.max(aTotal,bTotal)||1;
+  document.getElementById("pmHeadline").innerHTML=hl;
+  animateNumber(document.getElementById("pmCardA"),aTotal);
+  animateNumber(document.getElementById("pmCardB"),bTotal);
+  animateNumber(document.getElementById("pmCardC"),Math.abs(diff));
+  document.getElementById("pmCardCn").textContent=(aTotal>0?Math.abs(diff/aTotal*100).toFixed(0):"0")+"% "+(cheaper?"lower":"higher")+" with Priority";
+  document.getElementById("pmInTot").textContent=money(aTotal);
+  document.getElementById("pmPriTot").textContent=money(bTotal);
+  document.querySelector("#pmInCap").innerHTML=aCapMain+"<small>"+aCapSub+"</small>";
+  document.querySelector("#pmPriCap").innerHTML=bCapMain+"<small>"+bCapSub+"</small>";
+  setStack("pmInStack",aParts,aTotal,maxV);
+  setStack("pmPriStack",bParts,bTotal,maxV);
+  document.getElementById("pmVMain").textContent=(cheaper?"":"−")+money(Math.abs(diff));
+  document.getElementById("pmVMain").style.color=cheaper?SAVE_DEEP:COST_DEEP;
+  document.getElementById("pmVLbl").textContent=saveLbl;
+  const pill=document.getElementById("pmVPct");
+  pill.textContent=(aTotal>0?Math.abs(diff/aTotal*100).toFixed(0):"0")+(cheaper?"% lower":"% higher");
+  pill.style.background=cheaper?SAVE:COST_DEEP;
+  document.getElementById("pmS1").textContent=money(c.fee);
+  document.getElementById("pmS2").textContent=(c.pct*100).toFixed(1)+"%";
+  document.getElementById("pmKFee").textContent=(c.pct*100).toFixed(1)+"%";
+  document.getElementById("pmKGuar").textContent=c.guar+" days";
+  document.getElementById("pmKRepl").textContent=money(c.fee);
+  document.getElementById("pmKVac").textContent=Math.round(num("pmVacMonths")*30);
+  const lg=document.getElementById("pmLegend");
+  lg.innerHTML=aParts.map(function(p){
+    return '<div class="l2"><div class="nm"><i style="background:'+p.color+'"></i>'+p.name+'</div><div class="amt mono">'+money(p.amt)+'</div></div>';
+  }).join("")
+  + '<div class="l2 total"><div class="nm">'+aCapMain+' total</div><div class="amt mono">'+money(aTotal)+'</div></div>';
+}
+
+/* ================= TAB 3: TEMP-TO-PERM ================= */
+["tpRate","tpHours","tpWeek","tpSalary","tpFeePct","tpWaiveHours"]
+  .forEach(function(id){document.getElementById(id).addEventListener("input",renderT2P);});
+
+function t2pCalc(){
+  const rate=num("tpRate"), hrs=num("tpHours"), wk=Math.min(52,Math.max(1,Math.round(num("tpWeek"))||1));
+  const salary=num("tpSalary"), pct=num("tpFeePct")/100, waive=Math.max(1,num("tpWaiveHours"));
+  const b=burdenPct();
+  const feeAt=function(w){ const h=hrs*w; return salary*pct*Math.max(0,1-h/waive); };
+  const tempAt=function(w){ return rate*hrs*w; };
+  const year1At=function(w){ return tempAt(w)+feeAt(w)+salary*(1+b)*(52-w)/52; };
+  const direct=salary*pct+salary*(1+b);
+  let breakEven=null;
+  for(let w=1;w<=52;w++){ if(year1At(w)<=direct){breakEven=w;break;} }
+  const waiveWeek=hrs>0?Math.ceil(waive/hrs):0;
+  return {rate,hrs,wk,salary,pct,waive,b,feeAt,tempAt,year1At,direct,breakEven,waiveWeek,
+    fee:feeAt(wk),temp:tempAt(wk),year1:year1At(wk),fullFee:salary*pct};
+}
+function ensureTpChart(){
+  if(tpChartObj||typeof Chart==="undefined")return;
+  const ctx=document.getElementById("tpChart");
+  try{
+    tpChartObj=new Chart(ctx,{
+      type:"line",
+      data:{labels:[],datasets:[
+        {label:"Temp-to-perm route",data:[],borderColor:AZURE,backgroundColor:"rgba(16,160,223,.08)",
+         fill:true,tension:.25,pointRadius:0,pointHoverRadius:4,borderWidth:2.5},
+        {label:"Direct hire on day one",data:[],borderColor:COST_DEEP,borderDash:[7,5],
+         fill:false,tension:0,pointRadius:0,pointHoverRadius:4,borderWidth:2},
+        {label:"Your conversion week",data:[],borderColor:SAVE_DEEP,backgroundColor:SAVE,
+         showLine:false,pointRadius:6,pointHoverRadius:7,pointStyle:"rectRounded"}
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        layout:{padding:{top:16,right:12,left:4,bottom:2}},
+        interaction:{mode:"index",intersect:false},
+        animation:{duration:500,easing:"easeOutCubic"},
+        plugins:{
+          legend:{display:true,position:"bottom",labels:{usePointStyle:true,boxWidth:9,boxHeight:9,
+            font:{family:"Archivo",size:12},color:"#5e6678",padding:18}},
+          tooltip:{
+            backgroundColor:"#fff",borderColor:"#e7eaf1",borderWidth:1,padding:13,cornerRadius:9,
+            titleColor:NAVY,bodyColor:"#5e6678",titleFont:{family:"Archivo",weight:"700",size:13},
+            bodyFont:{family:"IBM Plex Mono",size:12.5},
+            callbacks:{label:function(c){return "  "+c.dataset.label+":  "+money(c.parsed.y);}}
+          }
+        },
+        scales:{
+          y:{grace:"6%",grid:{color:"#eef0f5",drawTicks:false},border:{display:false},
+             ticks:{color:"#828a9c",font:{family:"IBM Plex Mono",size:10.5},padding:10,
+               callback:function(v){return v>=1000?"$"+(v/1000).toFixed(0)+"k":"$"+v;}}},
+          x:{grid:{display:false},border:{color:"#d6dbe6"},
+             ticks:{color:"#828a9c",font:{family:"IBM Plex Mono",size:11},maxRotation:0,autoSkip:true,maxTicksLimit:14}}
+        }
+      }
+    });
+  }catch(e){}
+}
+function renderT2P(){
+  const c=t2pCalc();
+  animateNumber(document.getElementById("tpCardA"),c.temp);
+  animateNumber(document.getElementById("tpCardB"),c.fee);
+  animateNumber(document.getElementById("tpCardC"),c.fullFee-c.fee);
+  document.getElementById("tpCardAn").textContent=c.wk+" weeks × "+c.hrs+" hrs at your bill rate";
+  document.getElementById("tpCardBn").textContent="Declines with every hour worked";
+  document.getElementById("tpHl").textContent="shrinks every week";
+  document.getElementById("tpKWaive").textContent="wk "+c.waiveWeek;
+  document.getElementById("tpKHours").textContent=Math.round(c.hrs*c.wk).toLocaleString();
+  document.getElementById("tpKBreak").textContent=c.breakEven?("wk "+c.breakEven):"—";
+  const diff=c.direct-c.year1;
+  const kd=document.getElementById("tpKDiff");
+  kd.textContent=(diff>=0?"":"−")+money(Math.abs(diff));
+  kd.style.color=diff>=0?SAVE_DEEP:COST_DEEP;
+  document.getElementById("tpVMain").textContent=money(c.fee);
+  document.getElementById("tpVLbl").textContent="conversion fee at week "+c.wk;
+  const pill=document.getElementById("tpVPct");
+  const red=c.fullFee>0?(1-c.fee/c.fullFee)*100:0;
+  pill.textContent=red.toFixed(0)+"% reduced";
+  pill.style.background=red>0?SAVE:NAVY;
+  document.getElementById("tpS1").textContent=money(c.year1);
+  document.getElementById("tpS2").textContent=money(c.direct);
+  document.getElementById("tpS1").style.color=c.year1<=c.direct?SAVE_DEEP:COST_DEEP;
+  document.getElementById("tpS2").style.color=NAVY;
+  const lg=document.getElementById("tpLegend");
+  lg.innerHTML=
+    '<div class="l2"><div class="nm"><i style="background:'+COST_DEEP+'"></i>Temp billed to week '+c.wk+'</div><div class="amt mono">'+money(c.temp)+'</div></div>'
+   +'<div class="l2"><div class="nm"><i style="background:'+AZURE+'"></i>Conversion fee at week '+c.wk+'</div><div class="amt mono">'+money(c.fee)+'</div></div>'
+   +'<div class="l2"><div class="nm"><i style="background:'+NAVY+'"></i>Salary + burden, rest of year</div><div class="amt mono">'+money(c.salary*(1+c.b)*(52-c.wk)/52)+'</div></div>'
+   +'<div class="l2 total"><div class="nm">T2P route, year-1 total</div><div class="amt mono">'+money(c.year1)+'</div></div>';
+  if(tpChartObj){
+    const labels=[],t2p=[],dir=[],mark=[];
+    for(let w=1;w<=52;w++){
+      labels.push("wk "+w);
+      t2p.push(c.year1At(w));
+      dir.push(c.direct);
+      mark.push(w===c.wk?c.year1At(w):null);
+    }
+    tpChartObj.data.labels=labels;
+    tpChartObj.data.datasets[0].data=t2p;
+    tpChartObj.data.datasets[1].data=dir;
+    tpChartObj.data.datasets[2].data=mark;
+    tpChartObj.update();
+  }
+}
+
+/* ================= PDF REPORT ================= */
+function prepName(){ return document.getElementById("facName").value.trim(); }
+function repName(){ return document.getElementById("repName").value.trim(); }
+function todayStr(){ return new Date().toLocaleDateString("en-CA",{year:"numeric",month:"long",day:"numeric"}); }
+function rpFig(k,v,n,hl){ return '<div class="rp-fig'+(hl?" hl":"")+'"><div class="k">'+k+'</div><div class="v mono">'+v+'</div>'+(n?'<div class="n2">'+n+'</div>':"")+'</div>'; }
+function rpLi(html){ return '<li contenteditable="true">'+html+'<button class="rmx" contenteditable="false" title="Remove">&times;</button></li>'; }
+
+function reportInsights(){
+  const out=[];
+  if(activeTab==="temp"){
+    const t=rateTotals(), p5=projectYears(5), pct=t.cur>0?t.save/t.cur*100:0;
+    out.push("At the staffing mix reviewed, Priority lowers annual agency spend by <b>"+money(t.save*12)+"</b> ("+pct.toFixed(1)+"% reduction, "+money(t.save)+" per month).");
+    out.push("With Priority's rate held for the term while in-house costs rise "+(inflation()*100).toFixed(1)+"% per year, cumulative savings reach <b>"+money(p5[2].cumSave)+"</b> by year 3 and <b>"+money(p5[4].cumSave)+"</b> by year 5.");
+    const wage=num("bWage"), rate=num("bRate"), loaded=wage*(1+burdenPct());
+    if(loaded>rate) out.push("For 1:1 coverage, Priority's all-in rate of "+money2(rate)+" runs <b>"+money2(loaded-rate)+" per hour below</b> your true loaded in-house cost of "+money2(loaded)+" ("+(province==="ON"?"Ontario":"Alberta")+" statutory burden included).");
+  }else if(activeTab==="perm"){
+    const c=permCalc();
+    if(pmBase==="inhouse"){
+      out.push("Hiring in-house costs an estimated <b>"+money(c.inTotal)+"</b> per hire once advertising, HR and manager time, and vacancy cover are counted, against Priority's one-time fee of <b>"+money(c.fee)+"</b>.");
+    }else{
+      out.push("Twelve months of agency temp coverage costs <b>"+money(c.tempAnnual)+"</b>; converting the seat to a permanent hire via Priority costs <b>"+money(c.permAnnual)+"</b> in year one, salary, burden and fee included.");
+    }
+    out.push("The placement includes a <b>"+c.guar+"-day free replacement guarantee</b>, protecting the full fee value of "+money(c.fee)+" if the hire does not work out.");
+    out.push("Fee modelled at <b>"+(c.pct*100).toFixed(1)+"% of first-year salary</b> ("+money(c.salary)+"); to be confirmed in the service agreement.");
+  }else{
+    const c=t2pCalc();
+    out.push("Converting at week "+c.wk+" means a conversion fee of <b>"+money(c.fee)+"</b>, a "+((c.fullFee>0?(1-c.fee/c.fullFee)*100:0)).toFixed(0)+"% reduction earned versus converting on day one ("+money(c.fullFee)+").");
+    out.push("The fee declines with every hour worked and is <b>fully waived after "+Math.round(c.waive).toLocaleString()+" hours</b> on assignment (around week "+c.waiveWeek+" at "+c.hrs+" hrs/week).");
+    if(c.breakEven) out.push("From <b>week "+c.breakEven+"</b> onward, the temp-to-perm route costs no more over year one than hiring direct on day one, while keeping the trial period's flexibility.");
+  }
+  return out;
+}
+function reportTables(){
+  let html="";
+  if(activeTab==="temp"){
+    const t=rateTotals();
+    html+='<div class="rp-sec"><h3>Rate comparison</h3><div class="rp-table"><table><thead><tr><th>Designation</th><th>Current $/hr</th><th>Priority $/hr</th><th>Hrs/mo</th><th>Saving $/mo</th></tr></thead><tbody>';
+    rates.forEach(function(r){
+      html+='<tr><td>'+esc(r.role)+'</td><td class="mono">'+money2(r.current)+'</td><td class="pri mono">'+money2(r.proposed)+'</td><td class="mono">'+r.hours+'</td><td class="sv mono">'+money((r.current-r.proposed)*r.hours)+'</td></tr>';
+    });
+    html+='</tbody><tfoot><tr><td>Total</td><td></td><td></td><td></td><td class="sv mono">'+money(t.save)+'</td></tr></tfoot></table></div></div>';
+    if(chart){ try{ html+='<div class="rp-sec"><h3>Cumulative cost comparison</h3><div class="rp-chart"><img src="'+chart.toBase64Image()+'" alt="Cost chart"></div></div>'; }catch(e){} }
+    const p5=projectYears(5);
+    html+='<div class="rp-sec"><h3>Five-year projection, Priority rate locked</h3><div class="rp-table"><table><thead><tr><th>Year</th><th>Current spend</th><th>Priority spend</th><th>Annual saving</th><th>Cumulative</th></tr></thead><tbody>';
+    p5.forEach(function(r){ html+='<tr><td>Year '+r.y+'</td><td class="cur mono">'+money(r.cur)+'</td><td class="pri mono">'+money(r.pri)+'</td><td class="sv mono">'+money(r.save)+'</td><td class="sv mono">'+money(r.cumSave)+'</td></tr>'; });
+    html+='</tbody></table></div></div>';
+  }else if(activeTab==="perm"){
+    const c=permCalc();
+    const roleLbl=ROLE_DEFAULTS[document.getElementById("pmRole").value].label;
+    html+='<div class="rp-sec"><h3>Placement basis</h3><div class="rp-table"><table><tbody>';
+    html+='<tr><td>Role</td><td class="mono">'+esc(roleLbl)+'</td></tr>';
+    html+='<tr><td>First-year salary</td><td class="mono">'+money(c.salary)+'</td></tr>';
+    html+='<tr><td>Placement fee ('+(c.pct*100).toFixed(1)+'% of salary)</td><td class="pri mono">'+money(c.fee)+'</td></tr>';
+    html+='<tr><td>Replacement guarantee</td><td class="mono">'+c.guar+' days</td></tr>';
+    html+='</tbody></table></div></div>';
+    if(pmBase==="inhouse"){
+      html+='<div class="rp-sec"><h3>Your in-house cost to hire</h3><div class="rp-table"><table><tbody>';
+      c.inParts.forEach(function(p){ html+='<tr><td>'+p.name+'</td><td class="mono">'+money(p.amt)+'</td></tr>'; });
+      html+='<tr><td><b>Total in-house cost</b></td><td class="cur mono"><b>'+money(c.inTotal)+'</b></td></tr></tbody></table></div></div>';
+    }else{
+      html+='<div class="rp-sec"><h3>Year-one comparison</h3><div class="rp-table"><table><tbody>';
+      html+='<tr><td>12 months of agency temp cover</td><td class="cur mono">'+money(c.tempAnnual)+'</td></tr>';
+      c.permParts.forEach(function(p){ html+='<tr><td>'+p.name+'</td><td class="mono">'+money(p.amt)+'</td></tr>'; });
+      html+='<tr><td><b>Perm hire via Priority, year 1</b></td><td class="pri mono"><b>'+money(c.permAnnual)+'</b></td></tr></tbody></table></div></div>';
+    }
+  }else{
+    const c=t2pCalc();
+    html+='<div class="rp-sec"><h3>Conversion basis</h3><div class="rp-table"><table><tbody>';
+    html+='<tr><td>Temp bill rate</td><td class="mono">'+money2(c.rate)+' / hr</td></tr>';
+    html+='<tr><td>Hours per week</td><td class="mono">'+c.hrs+'</td></tr>';
+    html+='<tr><td>Conversion point</td><td class="mono">week '+c.wk+' ('+Math.round(c.hrs*c.wk).toLocaleString()+' hours)</td></tr>';
+    html+='<tr><td>First-year salary</td><td class="mono">'+money(c.salary)+'</td></tr>';
+    html+='<tr><td>Day-one fee ('+(c.pct*100).toFixed(1)+'% of salary)</td><td class="mono">'+money(c.fullFee)+'</td></tr>';
+    html+='<tr><td>Fee fully waived after</td><td class="mono">'+Math.round(c.waive).toLocaleString()+' hours (≈ week '+c.waiveWeek+')</td></tr>';
+    html+='</tbody></table></div></div>';
+    if(tpChartObj){ try{ html+='<div class="rp-sec"><h3>Year-one cost by conversion week</h3><div class="rp-chart"><img src="'+tpChartObj.toBase64Image()+'" alt="Conversion chart"></div></div>'; }catch(e){} }
+    html+='<div class="rp-sec"><h3>Year-one comparison</h3><div class="rp-table"><table><tbody>';
+    html+='<tr><td>Temp billed to week '+c.wk+'</td><td class="mono">'+money(c.temp)+'</td></tr>';
+    html+='<tr><td>Conversion fee at week '+c.wk+'</td><td class="mono">'+money(c.fee)+'</td></tr>';
+    html+='<tr><td>Salary + burden, rest of year</td><td class="mono">'+money(c.salary*(1+c.b)*(52-c.wk)/52)+'</td></tr>';
+    html+='<tr><td><b>Temp-to-perm route, year 1</b></td><td class="pri mono"><b>'+money(c.year1)+'</b></td></tr>';
+    html+='<tr><td><b>Direct hire on day one, year 1</b></td><td class="cur mono"><b>'+money(c.direct)+'</b></td></tr>';
+    html+='</tbody></table></div></div>';
+  }
+  return html;
+}
+function openReport(){
+  document.getElementById("rpLogo").src=document.getElementById("logo").src;
+  const fac=prepName(), rep=repName();
+  document.getElementById("rpMeta").innerHTML=
+    (fac?'Prepared for<br><b>'+esc(fac)+'</b><br>':'')+
+    (rep?'Prepared by '+esc(rep)+'<br>':'')+todayStr();
+  let eyebrow,headline,figs;
+  if(activeTab==="temp"){
+    const t=rateTotals(), pct=t.cur>0?t.save/t.cur*100:0, p5=projectYears(5);
+    eyebrow="Cost Analysis Report — Temp Staffing";
+    headline="Priority Healthcare lowers "+(fac||"your facility")+"'s staffing spend by "+money(t.save*12)+" a year.";
+    figs=rpFig("Current annual spend",money(t.cur*12))+
+         rpFig("With Priority",money(t.pri*12))+
+         rpFig("You keep — Year 1",money(t.save*12),pct.toFixed(1)+"% lower · "+money(t.save)+" / month",true)+
+         rpFig("Saving / month",money(t.save))+
+         rpFig("3-year cumulative",money(p5[2].cumSave))+
+         rpFig("5-year cumulative",money(p5[4].cumSave),"Priority rate locked",true);
+  }else if(activeTab==="perm"){
+    const c=permCalc();
+    eyebrow="Cost Analysis Report — Permanent Placement";
+    if(pmBase==="inhouse"){
+      headline="One placement fee replaces "+money(c.inTotal)+" of hiring cost and risk.";
+      figs=rpFig("In-house cost to hire",money(c.inTotal))+
+           rpFig("Priority placement fee",money(c.fee))+
+           rpFig("You keep",money(c.inTotal-c.fee),(c.inTotal>0?((c.inTotal-c.fee)/c.inTotal*100).toFixed(0):"0")+"% lower per hire",true);
+    }else{
+      headline="Converting this seat to permanent keeps "+money(c.tempAnnual-c.permAnnual)+" in year one.";
+      figs=rpFig("12 months on temps",money(c.tempAnnual))+
+           rpFig("Perm via Priority, year 1",money(c.permAnnual))+
+           rpFig("You keep — Year 1",money(c.tempAnnual-c.permAnnual),"",true);
+    }
+  }else{
+    const c=t2pCalc();
+    eyebrow="Cost Analysis Report — Temp-to-Perm Conversion";
+    headline="Trial first. Convert at week "+c.wk+" and the fee drops to "+money(c.fee)+".";
+    figs=rpFig("Temp cost to conversion",money(c.temp))+
+         rpFig("Conversion fee at week "+c.wk,money(c.fee))+
+         rpFig("Fee reduction earned",money(c.fullFee-c.fee),"vs converting on day one",true);
+  }
+  document.getElementById("rpEyebrow").textContent=eyebrow;
+  document.getElementById("rpHeadline").textContent=headline;
+  let body='<div class="rp-sec"><h3>Key figures</h3><div class="rp-figs">'+figs+'</div></div>';
+  body+=reportTables();
+  body+='<div class="rp-sec"><h3>Insights from our discussion</h3><div class="rp-insights"><ul id="rpInsightList">'+
+    reportInsights().map(rpLi).join("")+'</ul></div>'+
+    '<div class="rp-notes" id="rpNotes" contenteditable="true" data-ph="Add notes specific to this meeting — priorities raised, units affected, agreed next steps…"></div>'+
+    '<div class="rp-edit-hint">Click any insight to edit it, &times; to remove it, and type meeting notes above. Edits appear in the printed PDF.</div></div>';
+  document.getElementById("rpBody").innerHTML=body;
+  document.getElementById("rpBody").querySelectorAll(".rmx").forEach(function(b){
+    b.addEventListener("click",function(){ b.parentElement.remove(); });
+  });
+  document.getElementById("rpFoot").innerHTML=
+    '<b>Priority Healthcare Staffing Solutions Inc.</b> &middot; Prepared '+todayStr()+(rep?' by '+esc(rep):'')+'.<br>'+
+    document.getElementById("burdenFootnote").innerHTML+'<br>'+
+    'Figures reflect the inputs entered during the meeting and are illustrative, not contracted pricing. Placement-fee tiers and conversion-fee schedules are confirmed in the service agreement.';
+  document.body.classList.add("report-open");
+  window.scrollTo(0,0);
+}
+document.getElementById("printBtn").addEventListener("click",openReport);
+document.getElementById("rpBack").addEventListener("click",function(){ document.body.classList.remove("report-open"); });
+document.getElementById("rpPrint").addEventListener("click",function(){ window.print(); });
+
+/* ================= EMAIL IMAGE EXPORT ================= */
+async function exportImage(kind){
+  try{ await Promise.all([
+    document.fonts.load("800 84px Archivo"),document.fonts.load("700 28px Archivo"),
+    document.fonts.load("600 22px Archivo"),document.fonts.load("600 44px 'IBM Plex Mono'"),
+    document.fonts.load("500 22px 'IBM Plex Mono'"),document.fonts.load("600 80px 'IBM Plex Mono'")
+  ]); }catch(e){}
+  const W=1200,H=675,S=2;
+  const cv=document.createElement("canvas"); cv.width=W*S; cv.height=H*S;
+  const x=cv.getContext("2d"); x.scale(S,S);
+  x.fillStyle="#ffffff"; x.fillRect(0,0,W,H);
+  const g=x.createLinearGradient(0,0,W,0); g.addColorStop(0,NAVY); g.addColorStop(1,AZURE);
+  x.fillStyle=g; x.fillRect(0,0,W,8);
+  const logo=document.getElementById("logo");
+  let lw=0;
+  if(logo&&logo.naturalWidth){ const lh=52; lw=logo.naturalWidth/logo.naturalHeight*lh; x.drawImage(logo,56,40,lw,lh); }
+  const fac=prepName();
+  x.textAlign="right"; x.fillStyle="#5e6678"; x.font="600 15px Archivo";
+  if(fac){ x.fillStyle=NAVY; x.font="700 19px Archivo"; x.fillText(fac,W-56,62); x.fillStyle="#828a9c"; x.font="500 13px Archivo"; x.fillText(todayStr(),W-56,86); }
+  else { x.fillStyle="#828a9c"; x.font="500 13px Archivo"; x.fillText(todayStr(),W-56,68); }
+  x.strokeStyle="#e7eaf1"; x.lineWidth=1; x.beginPath(); x.moveTo(56,124); x.lineTo(W-56,124); x.stroke();
+  x.textAlign="left";
+  function chip(cx,cy,cw,k,v,vc){
+    x.fillStyle="#fcfdfe"; roundRect(x,cx,cy,cw,96,12); x.fill();
+    x.strokeStyle="#e7eaf1"; x.stroke();
+    x.fillStyle="#828a9c"; x.font="600 11.5px Archivo";
+    x.fillText(k.toUpperCase(),cx+20,cy+30);
+    x.fillStyle=vc||NAVY; x.font="600 30px 'IBM Plex Mono'";
+    x.fillText(v,cx+20,cy+70);
+  }
+  if(kind==="temp"){
+    const t=rateTotals(), pct=t.cur>0?t.save/t.cur*100:0, p5=projectYears(5);
+    x.fillStyle="#0a85bd"; x.font="700 13px Archivo";
+    x.fillText("C O S T   A N A L Y S I S   S U M M A R Y",56,168);
+    x.fillStyle="#828a9c"; x.font="600 13px Archivo"; x.fillText("YOU KEEP — YEAR 1",56,216);
+    x.fillStyle=SAVE_DEEP; x.font="600 80px 'IBM Plex Mono'";
+    x.fillText(money(t.save*12),52,300);
+    x.fillStyle="#5e6678"; x.font="500 19px Archivo";
+    x.fillText(pct.toFixed(1)+"% lower than current spend  ·  "+money(t.save)+" kept every month",56,340);
+    chip(56,386,340,"Current annual",money(t.cur*12),COST_DEEP);
+    chip(56+356,386,340,"With Priority",money(t.pri*12),"#0a85bd");
+    chip(56+712,386,340,"5-yr cumulative, rate locked",money(p5[4].cumSave),SAVE_DEEP);
+    let yy=540;
+    x.fillStyle="#828a9c"; x.font="600 11.5px Archivo"; x.fillText("PROPOSED RATES",56,yy-14);
+    const show=rates.slice(0,4);
+    const colW=(W-112)/show.length;
+    show.forEach(function(r,i){
+      const cx=56+i*colW;
+      x.fillStyle=NAVY; x.font="700 16px Archivo"; x.fillText(r.role,cx,yy+14);
+      x.fillStyle="#5e6678"; x.font="500 15px 'IBM Plex Mono'";
+      x.fillText(money2(r.current)+" → ",cx,yy+42);
+      const w1=x.measureText(money2(r.current)+" → ").width;
+      x.fillStyle="#0a85bd"; x.font="600 15px 'IBM Plex Mono'"; x.fillText(money2(r.proposed),cx+w1,yy+42);
+      x.fillStyle=SAVE_DEEP; x.font="600 13px 'IBM Plex Mono'";
+      x.fillText("save "+money2(r.current-r.proposed)+"/hr",cx,yy+66);
+    });
+  }else{
+    const wage=num("bWage"), rate=num("bRate"), hours=num("bHours");
+    const loaded=wage*(1+burdenPct()), perHr=loaded-rate;
+    x.fillStyle="#0a85bd"; x.font="700 13px Archivo";
+    x.fillText("1 : 1   P S W  /  H C A   —   T R U E   C O S T   S U M M A R Y",56,168);
+    x.fillStyle="#828a9c"; x.font="600 13px Archivo"; x.fillText("SAVED PER 1:1 HOUR VS IN-HOUSE",56,216);
+    x.fillStyle=perHr>=0?SAVE_DEEP:COST_DEEP; x.font="600 80px 'IBM Plex Mono'";
+    x.fillText((perHr>=0?"":"−")+money2(Math.abs(perHr)),52,300);
+    x.fillStyle="#5e6678"; x.font="500 19px Archivo";
+    x.fillText("Your loaded cost "+money2(loaded)+"  vs  Priority all-in "+money2(rate)+"  ·  "+(loaded>0?Math.abs(perHr)/loaded*100:0).toFixed(0)+"% "+(perHr>=0?"cheaper":"more"),56,340);
+    chip(56,386,340,"Your wage + burden /hr",money2(loaded),COST_DEEP);
+    chip(56+356,386,340,"Priority 1:1 all-in /hr",money2(rate),"#0a85bd");
+    chip(56+712,386,340,"Saved per year, "+hours+" hrs/mo",money(perHr*hours*12),SAVE_DEEP);
+    x.fillStyle="#828a9c"; x.font="600 11.5px Archivo"; x.fillText("WHAT THE WAGE REALLY CARRIES ("+(province==="ON"?"ONTARIO":"ALBERTA")+")",56,526);
+    let cx=56;
+    BURDEN_SETS[province].forEach(function(b){
+      x.fillStyle=b.color; roundRect(x,cx,540,10,10,3); x.fill();
+      x.fillStyle="#5e6678"; x.font="500 13px Archivo";
+      const lbl=b.name+" "+(b.pct*100).toFixed(2)+"%";
+      x.fillText(lbl,cx+16,550);
+      cx+=16+x.measureText(lbl).width+26;
+    });
+  }
+  x.strokeStyle="#e7eaf1"; x.beginPath(); x.moveTo(56,H-62); x.lineTo(W-56,H-62); x.stroke();
+  x.fillStyle="#828a9c"; x.font="500 12px Archivo";
+  x.fillText("Priority Healthcare Staffing Solutions Inc.  ·  figures based on rates entered "+todayStr()+"  ·  illustrative, not contracted pricing",56,H-34);
+  cv.toBlob(function(blob){
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=(fac?fac.replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-")+"-":"")+"Priority-"+(kind==="temp"?"Cost-Summary":"1to1-Summary")+".png";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},800);
+  },"image/png");
+}
+document.getElementById("exportTemp").addEventListener("click",function(){exportImage("temp");});
+document.getElementById("exportOneOne").addEventListener("click",function(){exportImage("oneone");});
+
+/* ================= INIT ================= */
+document.getElementById("logo").src="data:image/png;base64,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";
+renderRates();
+buildChart();
+refreshRates(false);
+updateProvinceText();
+renderBurden();
+renderPerm();
+renderT2P();
+</script>
+</body>
+</html>
